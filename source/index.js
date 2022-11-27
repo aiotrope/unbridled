@@ -1,10 +1,11 @@
-import MongoDatabase from './utils/database.js'
 import { ApolloServer } from '@apollo/server'
 import { expressMiddleware } from '@apollo/server/express4'
 import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHttpServer'
 import express from 'express'
 import http from 'http'
+import MongoDatabase from './utils/database.js'
 import cors from 'cors'
+import helmet from 'helmet'
 import bodyParser from 'body-parser'
 import { typeDefs } from './schema/typeDefs.js'
 import { resolvers } from './schema/resolvers.js'
@@ -25,7 +26,17 @@ const server = new ApolloServer({
 
 const start = async () => {
   await server.start()
-  app.use('/graphql', cors(), bodyParser.json(), expressMiddleware(server))
+
+  app.use(
+    '/graphql',
+    cors(),
+    helmet({
+      contentSecurityPolicy: false,
+      crossOriginEmbedderPolicy: false,
+    }),
+    bodyParser.json(),
+    expressMiddleware(server)
+  )
 
   await new Promise((resolve) => httpServer.listen({ port: port }, resolve))
 
