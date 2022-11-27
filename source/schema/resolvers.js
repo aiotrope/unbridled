@@ -13,7 +13,7 @@ export const resolvers = {
         const count = await Author.countDocuments()
         if (count) return count
       } catch (error) {
-        throw new GraphQLError("can't processed authorCount request", {
+        throw new GraphQLError('can\'t processed authorCount request', {
           extensions: { code: 'BAD_REQUEST' },
         })
       }
@@ -24,7 +24,7 @@ export const resolvers = {
         if (count) return count
       } catch (error) {
         logger.error(error.extensions?.code)
-        throw new GraphQLError("can't processed bookCount request", {
+        throw new GraphQLError('can\'t processed bookCount request', {
           extensions: { code: 'BAD_REQUEST' },
         })
       }
@@ -37,7 +37,7 @@ export const resolvers = {
           return authors
         }
       } catch (error) {
-        throw new GraphQLError("can't processed allAuthors request", {
+        throw new GraphQLError('can\'t processed allAuthors request', {
           extensions: { code: 'BAD_REQUEST' },
         })
       }
@@ -69,7 +69,7 @@ export const resolvers = {
           return books
         }
       } catch (error) {
-        throw new GraphQLError("can't processed allBooks request", {
+        throw new GraphQLError('can\'t processed allBooks request', {
           extensions: { code: 'BAD_REQUEST' },
         })
       }
@@ -84,7 +84,7 @@ export const resolvers = {
           return newAuthor
         }
       } catch (error) {
-        throw new GraphQLError("can't processed addAuthor request", {
+        throw new GraphQLError('can\'t processed addAuthor request', {
           extensions: { code: 'BAD_USER_INPUT' },
         })
       }
@@ -96,15 +96,13 @@ export const resolvers = {
         const newBook = await Book.create(book)
         if (newBook) {
           return newBook
-        } else if (errors) {
-          logger.error(errors)
         }
       } catch (error) {
         if (error) {
           logger.error(error.extensions?.code)
         }
 
-        throw new GraphQLError("can't processed addBook request", {
+        throw new GraphQLError('can\'t processed addBook request', {
           extensions: { code: 'BAD_USER_INPUT' },
         })
       }
@@ -120,7 +118,7 @@ export const resolvers = {
           return author
         }
       } catch (error) {
-        throw new GraphQLError("can't processed addBook request", {
+        throw new GraphQLError('can\'t processed addBook request', {
           extensions: { code: 'BAD_USER_INPUT' },
         })
       }
@@ -135,7 +133,7 @@ export const resolvers = {
         if (booksByAuthor) return booksByAuthor
       } catch (error) {
         logger.error(error.extensions?.code)
-        throw new GraphQLError("can't processed bookCount for Author request", {
+        throw new GraphQLError('can\'t processed bookCount for Author request', {
           extensions: { code: 'BAD_REQUEST' },
         })
       }

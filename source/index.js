@@ -23,10 +23,13 @@ const server = new ApolloServer({
   plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
 })
 
-await server.start()
+const start = async () => {
+  await server.start()
+  app.use('/graphql', cors(), bodyParser.json(), expressMiddleware(server))
 
-app.use('/graphql', cors(), bodyParser.json(), expressMiddleware(server))
+  await new Promise((resolve) => httpServer.listen({ port: port }, resolve))
 
-await new Promise((resolve) => httpServer.listen({ port: port }, resolve))
+  logger.info(`🚀 Server ready at http://localhost:${port}/`)
+}
 
-logger.info(`🚀 Server ready at http://localhost:${port}/`)
+start()
