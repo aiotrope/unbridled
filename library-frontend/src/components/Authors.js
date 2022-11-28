@@ -1,39 +1,52 @@
-import { useQuery, gql, NetworkStatus } from '@apollo/client'
+import React, { useState } from 'react'
+import { useQuery, NetworkStatus, useMutation } from '@apollo/client'
+import { ALL_AUTHORS } from '../operationTypes/queries'
+import { EDIT_AUTHOR } from '../operationTypes/mutations'
 import pkg from 'lodash'
 const { cloneDeep } = pkg
 
-const ALL_AUTHORS = gql`
-  query AllAuthors {
-    allAuthors {
-      id
-      name
-      born
-      bookCount
-    }
-  }
-`
-
 const Authors = (props) => {
-  const { loading, error, data, networkStatus } = useQuery(ALL_AUTHORS, {
+  const [author, setAuthor] = useState(null)
+  const [born, setBorn] = useState(null)
+
+  const authorQuery = useQuery(ALL_AUTHORS, {
     notifyOnNetworkStatusChange: true,
-   pollInterval: 500
+  })
+
+  const [editAuthor, result] = useMutation(EDIT_AUTHOR, {
+    notifyOnNetworkStatusChange: true,
+    refetchQueries: [{ query: ALL_AUTHORS }],
   })
 
   if (!props.show) {
     return null
   }
 
-  if (networkStatus === NetworkStatus.refetch) return 'Refetching!'
+  if (authorQuery.networkStatus === NetworkStatus.refetch) return 'Refetching!'
 
-  if (loading) {
-    return null
-  }
-  if (error) {
-    return <p>Error: {error.message}</p>
+  if (authorQuery.loading) {
+    return <p>loading...</p>
   }
 
-  const authors = cloneDeep(data.allAuthors)
+  if (authorQuery.error) {
+    return <p>Error: {authorQuery.error.message}</p>
+  }
 
+  const authors = cloneDeep(authorQuery.data.allAuthors)
+
+  const handleSubmit = (event) => {
+    event.preventDefault()
+    
+    editAuthor({
+      variables: {
+        editAuthorId: author,
+        bornInput: { "born": born }
+      },
+    })
+    setAuthor(null)
+    setBorn(null)
+  }
+  console.log(result?.data)
   return (
     <div>
       <h2>authors</h2>
@@ -53,6 +66,33 @@ const Authors = (props) => {
           ))}
         </tbody>
       </table>
+      <div>
+        <h3>set birthyear</h3>
+        <form spellCheck="false" onSubmit={handleSubmit}>
+          <div>
+            <label htmlFor="author">name</label>
+            <select
+              name="author"
+              onChange={({ target }) => setAuthor(target.value)}
+            >
+              <option label="-- select an option --"></option>
+              {authors.map(({ id, name }) => (
+                <option key={id} value={id}>
+                  {name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="born">born</label>
+            <input
+              type="text"
+              onChange={({ target }) => setBorn(Number(target.value))}
+            />
+          </div>
+          <button type="submit">update author</button>
+        </form>
+      </div>
     </div>
   )
 }

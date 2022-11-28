@@ -1,19 +1,23 @@
 export const typeDefs = `#graphql
     type Author {
-        name: String!
-        id: String!
+        name: String
+        id: ID!
         born: Int
-        bookCount: Int!
+        bookCount: Int
     }
 
     input AuthorInput {
-        name: String!
+        name: String
         born: Int
+    }
+
+    input BornInput {
+        born: Int!
     }
 
     type Book {
         title: String!
-        id: String!
+        id: ID!
         published: Int!
         author: [Author!]!
         genres: [String]!
@@ -37,7 +41,7 @@ export const typeDefs = `#graphql
 
         editAuthor(
             id: ID!
-            born: Int!
+            bornInput: BornInput!
         ): Author
     }
    

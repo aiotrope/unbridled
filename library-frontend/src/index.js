@@ -1,37 +1,17 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
+import { ApolloClient, InMemoryCache, ApolloProvider } from '@apollo/client'
 import App from './App'
-
-import {
-  ApolloClient,
-  InMemoryCache,
-  ApolloProvider,
-  gql,
-} from '@apollo/client'
+import { defaultOptions } from './operationTypes/defaultOptions'
 
 const baseUri = process.env.REACT_APP_BASE_URI
 
 const client = new ApolloClient({
   uri: baseUri,
   cache: new InMemoryCache(),
-})
-
-client.query({
-  query: gql`
-    query AllBooks {
-      allBooks {
-        id
-        title
-        published
-        author {
-          name
-          id
-          born
-        }
-        genres
-      }
-    }
-  `,
+  name: 'library-frontend',
+  queryDeduplication: false,
+  defaultOptions: defaultOptions,
 })
 
 const root = ReactDOM.createRoot(document.getElementById('root'))

@@ -111,14 +111,14 @@ export const resolvers = {
       try {
         const author = await Author.findByIdAndUpdate(
           args.id,
-          { born: args.born },
+          args.bornInput,
           { new: true }
         )
         if (author) {
           return author
         }
       } catch (error) {
-        throw new GraphQLError('can\'t processed addBook request', {
+        throw new GraphQLError('can\'t processed editAuthor request', {
           extensions: { code: 'BAD_USER_INPUT' },
         })
       }

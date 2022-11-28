@@ -1,75 +1,40 @@
 import { useState } from 'react'
-import { gql, useMutation, useQuery } from '@apollo/client'
+import { useMutation, useQuery, makeVar, useReactiveVar } from '@apollo/client'
+import { ADD_BOOK } from '../operationTypes/mutations'
+import { ALL_AUTHORS, ALL_BOOKS } from '../operationTypes/queries'
 
-const ADD_BOOK = gql`
-  mutation addBook(
-    $title: String!
-    $published: Int!
-    $author: String!
-    $genres: [String]!
-  ) {
-    addBook(
-      title: $title
-      published: $published
-      author: $author
-      genres: $genres
-    ) {
-      title
-      id
-      published
-      genres
-    }
-  }
-`
+const booksVar = makeVar([])
 
-const ALL_AUTHORS = gql`
-  query AllAuthors {
-    allAuthors {
-      id
-      name
-      born
-    }
-  }
-`
-const ALL_BOOKS = gql`
-  query AllBooks {
-    allBooks {
-      id
-      title
-      published
-      author {
-        name
-        id
-        born
-      }
-      genres
-    }
-  }
-`
 const NewBook = (props) => {
-  const [addBook, { data, loading, error }] = useMutation(ADD_BOOK, {
-    refetchQueries: [{ query: ALL_AUTHORS }, { query: ALL_BOOKS }],
-  })
-  const authorQuery = useQuery(ALL_AUTHORS)
-
+  
   const [title, setTitle] = useState('')
   const [author, setAuthor] = useState('')
   const [published, setPublished] = useState('')
   const [genre, setGenre] = useState('')
   const [genres, setGenres] = useState([])
 
+  const [addBook, { data, loading, error, reset }] = useMutation(ADD_BOOK, {
+    refetchQueries: [{ query: ALL_AUTHORS }, { query: ALL_BOOKS }],
+  })
+  const authorQuery = useQuery(ALL_AUTHORS)
+
+  const booksItem = useReactiveVar(booksVar)
+
+
+  
   if (!props.show) {
     return null
   }
 
   if (error) {
+    
     return <p>Error: {error.message}</p>
   }
 
   const submit = async (event) => {
     event.preventDefault()
     const _pub = Number(event.target.published.value)
-    //console.log(event.target.author.value)
+   
     addBook({
       variables: {
         title: title,
@@ -78,19 +43,22 @@ const NewBook = (props) => {
         genres: genres,
       },
     })
+
     setTitle('')
     setPublished('')
     setAuthor('')
     setGenres([])
     setGenre('')
-    //window.location.reload()
+    reset()
+   /*  const sample = authorQuery?.data?.allAuthors
+    booksVar([...sample, data.addBook]) */
   }
 
   const addGenre = () => {
     setGenres(genres.concat(genre))
     setGenre('')
   }
-  console.log(data)
+ 
   return (
     <div>
       <form onSubmit={submit} spellCheck="false">

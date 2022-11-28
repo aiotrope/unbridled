@@ -1,27 +1,12 @@
-import { useQuery, gql, NetworkStatus } from '@apollo/client'
+import { useQuery, NetworkStatus } from '@apollo/client'
+import { ALL_BOOKS } from '../operationTypes/queries'
 import pkg from 'lodash'
 const { cloneDeep } = pkg
 
-const ALL_BOOKS = gql`
-  query AllBooks {
-    allBooks {
-      id
-      title
-      published
-      author {
-        name
-        id
-        born
-      }
-      genres
-    }
-  }
-`
 
 const Books = (props) => {
   const { loading, error, data, networkStatus } = useQuery(ALL_BOOKS, {
-    notifyOnNetworkStatusChange: true,
-   pollInterval: 2000
+    notifyOnNetworkStatusChange: true
   })
 
   if (!props.show) {
@@ -38,7 +23,7 @@ const Books = (props) => {
   }
 
   const books = cloneDeep(data.allBooks)
-  console.log(books)
+  //console.log(books)
   return (
     <div>
       <h2>books</h2>
