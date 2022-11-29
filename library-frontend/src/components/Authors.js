@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
-import { useQuery, NetworkStatus, useMutation } from '@apollo/client'
-import { ALL_AUTHORS } from '../operationTypes/queries'
-import { EDIT_AUTHOR } from '../operationTypes/mutations'
+import { useQuery, useMutation } from '@apollo/client'
+import { ALL_AUTHORS } from '../graphql/queries'
+import { EDIT_AUTHOR } from '../graphql/mutations'
 import pkg from 'lodash'
 const { cloneDeep } = pkg
 
@@ -13,7 +13,7 @@ const Authors = (props) => {
     notifyOnNetworkStatusChange: true,
   })
 
-  const [editAuthor, result] = useMutation(EDIT_AUTHOR, {
+  const [editAuthor] = useMutation(EDIT_AUTHOR, {
     notifyOnNetworkStatusChange: true,
     refetchQueries: [{ query: ALL_AUTHORS }],
   })
@@ -21,8 +21,6 @@ const Authors = (props) => {
   if (!props.show) {
     return null
   }
-
-  if (authorQuery.networkStatus === NetworkStatus.refetch) return 'Refetching!'
 
   if (authorQuery.loading) {
     return <p>loading...</p>
@@ -36,17 +34,17 @@ const Authors = (props) => {
 
   const handleSubmit = (event) => {
     event.preventDefault()
-    
+
     editAuthor({
       variables: {
         editAuthorId: author,
-        bornInput: { "born": born }
+        bornInput: { born: born },
       },
     })
     setAuthor(null)
     setBorn(null)
   }
-  console.log(result?.data)
+
   return (
     <div>
       <h2>authors</h2>

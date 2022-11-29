@@ -1,33 +1,17 @@
 import React from 'react'
 
 export const Notification = ({ error, success }) => {
-  const ok = () => <div className="success">{success}</div>
+  const ok = () => (
+    <div className="success mt-2 mb-2">
+      <p>{success}</p>
+    </div>
+  )
 
-  const notOk = () => <div className="error">{error}</div>
+  const notOk = () => (
+    <div className="error mt-2 mb-2">
+      <p>{error}</p>
+    </div>
+  )
 
-  const messageSuccess = () => {
-    let timer = setTimeout(() => {
-      ok()
-    }, 10000)
-    clearTimeout(timer)
-  }
-
-  const messageError = () => {
-    let timer = setTimeout(() => {
-      notOk()
-    }, 10000)
-    clearTimeout(timer)
-  }
-
-  if (error === null) {
-    return null
-  } else if (success === null) {
-    return null
-  } else if (success) {
-    return messageSuccess()
-  } else if (error) {
-    return messageError()
-  } else {
-    return null
-  }
+  return success ? ok() : notOk()
 }

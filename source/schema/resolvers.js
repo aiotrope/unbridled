@@ -1,3 +1,4 @@
+/* eslint-disable quotes */
 import Author from '../models/author.js'
 import Book from '../models/book.js'
 import logger from '../utils/logger.js'
@@ -13,7 +14,7 @@ export const resolvers = {
         const count = await Author.countDocuments()
         if (count) return count
       } catch (error) {
-        throw new GraphQLError('can\'t processed authorCount request', {
+        throw new GraphQLError("can't processed authorCount request", {
           extensions: { code: 'BAD_REQUEST' },
         })
       }
@@ -24,7 +25,7 @@ export const resolvers = {
         if (count) return count
       } catch (error) {
         logger.error(error.extensions?.code)
-        throw new GraphQLError('can\'t processed bookCount request', {
+        throw new GraphQLError("can't processed bookCount request", {
           extensions: { code: 'BAD_REQUEST' },
         })
       }
@@ -37,7 +38,7 @@ export const resolvers = {
           return authors
         }
       } catch (error) {
-        throw new GraphQLError('can\'t processed allAuthors request', {
+        throw new GraphQLError("can't processed allAuthors request", {
           extensions: { code: 'BAD_REQUEST' },
         })
       }
@@ -69,7 +70,7 @@ export const resolvers = {
           return books
         }
       } catch (error) {
-        throw new GraphQLError('can\'t processed allBooks request', {
+        throw new GraphQLError("can't processed allBooks request", {
           extensions: { code: 'BAD_REQUEST' },
         })
       }
@@ -84,7 +85,7 @@ export const resolvers = {
           return newAuthor
         }
       } catch (error) {
-        throw new GraphQLError('can\'t processed addAuthor request', {
+        throw new GraphQLError("can't processed addAuthor request", {
           extensions: { code: 'BAD_USER_INPUT' },
         })
       }
@@ -102,23 +103,21 @@ export const resolvers = {
           logger.error(error.extensions?.code)
         }
 
-        throw new GraphQLError('can\'t processed addBook request', {
+        throw new GraphQLError("can't processed addBook request", {
           extensions: { code: 'BAD_USER_INPUT' },
         })
       }
     },
     editAuthor: async (parent, args) => {
       try {
-        const author = await Author.findByIdAndUpdate(
-          args.id,
-          args.bornInput,
-          { new: true }
-        )
+        const author = await Author.findByIdAndUpdate(args.id, args.bornInput, {
+          new: true,
+        })
         if (author) {
           return author
         }
       } catch (error) {
-        throw new GraphQLError('can\'t processed editAuthor request', {
+        throw new GraphQLError("can't processed editAuthor request", {
           extensions: { code: 'BAD_USER_INPUT' },
         })
       }
@@ -133,7 +132,7 @@ export const resolvers = {
         if (booksByAuthor) return booksByAuthor
       } catch (error) {
         logger.error(error.extensions?.code)
-        throw new GraphQLError('can\'t processed bookCount for Author request', {
+        throw new GraphQLError("can't processed bookCount for Author request", {
           extensions: { code: 'BAD_REQUEST' },
         })
       }

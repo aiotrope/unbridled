@@ -1,40 +1,40 @@
-import { useState } from 'react'
-import { useMutation, useQuery, makeVar, useReactiveVar } from '@apollo/client'
-import { ADD_BOOK } from '../operationTypes/mutations'
-import { ALL_AUTHORS, ALL_BOOKS } from '../operationTypes/queries'
-
-const booksVar = makeVar([])
+import { useState, useEffect } from 'react'
+import { useMutation, useQuery } from '@apollo/client'
+import { ADD_BOOK } from '../graphql/mutations'
+import { ALL_AUTHORS, ALL_BOOKS } from '../graphql/queries'
 
 const NewBook = (props) => {
-  
   const [title, setTitle] = useState('')
   const [author, setAuthor] = useState('')
   const [published, setPublished] = useState('')
   const [genre, setGenre] = useState('')
   const [genres, setGenres] = useState([])
 
-  const [addBook, { data, loading, error, reset }] = useMutation(ADD_BOOK, {
+  const [addBook, { error, loading }] = useMutation(ADD_BOOK, {
     refetchQueries: [{ query: ALL_AUTHORS }, { query: ALL_BOOKS }],
   })
   const authorQuery = useQuery(ALL_AUTHORS)
 
-  const booksItem = useReactiveVar(booksVar)
+  useEffect(() => {
+    if (error && props.page === 'add') {
+      props.setErrorMessage(error.message)
+      let timer = setTimeout(() => props.setErrorMessage(''), 1000)
+      return () => clearTimeout(timer)
+    }
+  }, [error, props])
 
-
-  
   if (!props.show) {
     return null
   }
 
-  if (error) {
-    
-    return <p>Error: {error.message}</p>
+  if (loading) {
+    return <p>loading...</p>
   }
 
   const submit = async (event) => {
     event.preventDefault()
     const _pub = Number(event.target.published.value)
-   
+
     addBook({
       variables: {
         title: title,
@@ -49,16 +49,13 @@ const NewBook = (props) => {
     setAuthor('')
     setGenres([])
     setGenre('')
-    reset()
-   /*  const sample = authorQuery?.data?.allAuthors
-    booksVar([...sample, data.addBook]) */
   }
 
   const addGenre = () => {
     setGenres(genres.concat(genre))
     setGenre('')
   }
- 
+
   return (
     <div>
       <form onSubmit={submit} spellCheck="false">

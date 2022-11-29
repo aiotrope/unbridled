@@ -3,6 +3,7 @@ import Authors from './components/Authors'
 import Books from './components/Books'
 import NewBook from './components/NewBook'
 import { Notification } from './components/Notification'
+import './App.css'
 
 const App = () => {
   const [page, setPage] = useState('authors')
@@ -32,6 +33,8 @@ const App = () => {
         show={page === 'add'}
         setSuccessMessage={setSuccessMessage}
         setErrorMessage={setErrorMessage}
+        setPage={setPage}
+        page={page}
       />
     </div>
   )
