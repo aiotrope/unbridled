@@ -2,6 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import client from './client'
 import { ApolloProvider } from '@apollo/client'
+import './_index.scss'
 import App from './App'
 
 const root = ReactDOM.createRoot(document.getElementById('root'))

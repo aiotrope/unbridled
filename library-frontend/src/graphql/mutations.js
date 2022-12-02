@@ -36,3 +36,24 @@ export const EDIT_AUTHOR = gql`
     }
   }
 `
+
+export const CREATE_USER = gql`
+mutation createUser($createUserInput: CreateUserInput!) {
+  createUser(createUserInput: $createUserInput) {
+    id
+    username
+    successSignupMessage
+  }
+}
+`
+
+export const LOGIN = gql`
+mutation login($username: String!, $password: String!) {
+  login(username: $username, password: $password) {
+    id
+    username
+    token
+    successLoginMessage
+  }
+}
+`

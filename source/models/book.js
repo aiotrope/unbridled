@@ -17,9 +17,18 @@ const BookSchema = new Schema(
         ref: 'Author',
       },
     ],
-    genres: {
-      type: Array,
-    },
+    genres: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'Genre',
+      },
+    ],
+    user: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'User',
+      },
+    ],
   },
   { timestamps: true }
 )

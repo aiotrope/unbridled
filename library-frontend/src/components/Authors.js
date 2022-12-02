@@ -5,7 +5,7 @@ import { EDIT_AUTHOR } from '../graphql/mutations'
 import pkg from 'lodash'
 const { cloneDeep } = pkg
 
-const Authors = (props) => {
+const Authors = () => {
   const [author, setAuthor] = useState(null)
   const [born, setBorn] = useState(null)
 
@@ -14,13 +14,8 @@ const Authors = (props) => {
   })
 
   const [editAuthor] = useMutation(EDIT_AUTHOR, {
-    notifyOnNetworkStatusChange: true,
     refetchQueries: [{ query: ALL_AUTHORS }],
   })
-
-  if (!props.show) {
-    return null
-  }
 
   if (authorQuery.loading) {
     return <p>loading...</p>
