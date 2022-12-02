@@ -8,7 +8,7 @@ import Genre from '../models/genre.js'
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
 import logger from '../utils/logger.js'
-import pkg, { isNull } from 'lodash'
+import pkg from 'lodash'
 
 const { countBy, filter } = pkg
 
