@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 
-//import Books from './components/Books'
-//import NewBook from './components/NewBook'
+import Books from './components/Books'
+import NewBook from './components/NewBook'
 import { Notification } from './components/Notification'
 import { Menu } from './components/Menu'
 import Authors from './components/Authors'
@@ -42,32 +42,6 @@ const App = () => {
   }, [])
 
   return (
-    /*  <div>
-      <div>
-        <button onClick={() => setPage('authors')}>authors</button>
-        <button onClick={() => setPage('books')}>books</button>
-        <button onClick={() => setPage('add')}>add book</button>
-      </div>
-      <div>
-        <Notification error={errorMessage} success={successMessage} />
-      </div>
-
-      <Authors
-        show={page === 'authors'}
-        setSuccessMessage={setSuccessMessage}
-        setErrorMessage={setErrorMessage}
-      />
-
-      <Books show={page === 'books'} />
-
-      <NewBook
-        show={page === 'add'}
-        setSuccessMessage={setSuccessMessage}
-        setErrorMessage={setErrorMessage}
-        setPage={setPage}
-        page={page}
-      />
-    </div> */
     <Router>
       <header>
         <Menu authUser={authUsername} setAuthUsername={setAuthUsername} />
@@ -77,9 +51,19 @@ const App = () => {
       </Container>
 
       <Container>
-        <main className="mt-5">
+        <main style={{ marginTop: '6rem' }}>
           <Routes>
-            <Route path="/" element={<Authors />} />
+            <Route
+              path="/"
+              element={
+                <Authors
+                  mounted={isComponentMounted}
+                  setSuccessMessage={setSuccessMessage}
+                  setErrorMessage={setErrorMessage}
+                  authUser={authUsername}
+                />
+              }
+            />
             <Route
               path="/signup"
               element={
@@ -95,6 +79,26 @@ const App = () => {
               path="/login"
               element={
                 <Login
+                  mounted={isComponentMounted}
+                  setSuccessMessage={setSuccessMessage}
+                  setErrorMessage={setErrorMessage}
+                  authUser={authUsername}
+                />
+              }
+            />
+            <Route
+              path="/books"
+              element={
+                <Books
+                  mounted={isComponentMounted}
+                  setErrorMessage={setErrorMessage}
+                />
+              }
+            />
+            <Route
+              path="/add"
+              element={
+                <NewBook
                   mounted={isComponentMounted}
                   setSuccessMessage={setSuccessMessage}
                   setErrorMessage={setErrorMessage}

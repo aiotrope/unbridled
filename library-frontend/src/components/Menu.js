@@ -1,5 +1,5 @@
 //import { Link, NavLink } from 'react-router-dom'
-import React, { useEffect } from 'react'
+import React from 'react'
 import { LinkContainer } from 'react-router-bootstrap'
 import { useNavigate } from 'react-router-dom'
 import Button from 'react-bootstrap/Button'
@@ -32,9 +32,13 @@ const AuthMenu = ({ authUser, setAuthUsername }) => {
             <LinkContainer to={'/'}>
               <Nav.Link>Authors</Nav.Link>
             </LinkContainer>
+            <LinkContainer to={'/books'}>
+              <Nav.Link>Books</Nav.Link>
+            </LinkContainer>
+            <LinkContainer to={'/add'}>
+              <Nav.Link>Add Book</Nav.Link>
+            </LinkContainer>
 
-            <Nav.Link href="#pricing">Books</Nav.Link>
-            <Nav.Link href="#pricing">Add Book</Nav.Link>
             <Nav.Link href="#pricing">Recommend</Nav.Link>
           </Nav>
           <Nav>
@@ -65,8 +69,9 @@ const NonAuthMenu = () => (
           <LinkContainer to={'/'}>
             <Nav.Link>Authors</Nav.Link>
           </LinkContainer>
-
-          <Nav.Link href="#pricing">Books</Nav.Link>
+          <LinkContainer to={'/books'}>
+            <Nav.Link>Books</Nav.Link>
+          </LinkContainer>
         </Nav>
         <Nav>
           <LinkContainer to={'/login'}>

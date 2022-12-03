@@ -25,6 +25,7 @@ export const typeDefs = `#graphql
         id: ID!
         born: Int
         bookCount: Int
+        successEditAuthorMessage: String!
     }
 
     input AuthorInput {
@@ -51,6 +52,7 @@ export const typeDefs = `#graphql
         published: Int!
         author: [Author!]!
         genres: [String]!
+        successAddBookMessage: String!
     }
 
     type Query {
@@ -72,8 +74,8 @@ export const typeDefs = `#graphql
         addBook(
             title: String!
             published: Int!
-            author: String!
-            genres: [String!]!
+            author: ID!
+            genres: [ID!]!
         ): Book
 
         addGenre(genreInput: GenreInput!): Genre

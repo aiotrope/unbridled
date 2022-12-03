@@ -1,11 +1,15 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useQuery, useMutation } from '@apollo/client'
 import { ALL_AUTHORS } from '../graphql/queries'
 import { EDIT_AUTHOR } from '../graphql/mutations'
+import Table from 'react-bootstrap/Table'
+import Container from 'react-bootstrap/Container'
+import Form from 'react-bootstrap/Form'
+import Button from 'react-bootstrap/Button'
 import pkg from 'lodash'
 const { cloneDeep } = pkg
 
-const Authors = () => {
+const Authors = ({ mounted, setSuccessMessage, setErrorMessage, authUser }) => {
   const [author, setAuthor] = useState(null)
   const [born, setBorn] = useState(null)
 
@@ -13,21 +17,48 @@ const Authors = () => {
     notifyOnNetworkStatusChange: true,
   })
 
-  const [editAuthor] = useMutation(EDIT_AUTHOR, {
+  const [editAuthor, { loading, error, data }] = useMutation(EDIT_AUTHOR, {
     refetchQueries: [{ query: ALL_AUTHORS }],
   })
 
-  if (authorQuery.loading) {
-    return <p>loading...</p>
-  }
+  useEffect(() => {
+    if (mounted && data?.editAuthor) {
+      setSuccessMessage(data?.editAuthor?.successEditAuthorMessage)
+      let timer
+      timer = setTimeout(() => {
+        setSuccessMessage('')
+        setAuthor('')
+        setBorn('')
+        clearTimeout(timer)
+      }, 4000)
+    }
+  }, [data?.editAuthor, mounted, setSuccessMessage])
 
-  if (authorQuery.error) {
-    return <p>Error: {authorQuery.error.message}</p>
-  }
+  useEffect(() => {
+    if (mounted && error) {
+      setErrorMessage(error?.message)
+      let timer
+      timer = setTimeout(() => {
+        setErrorMessage('')
+        clearTimeout(timer)
+      }, 5000)
+    }
+  }, [error, mounted, setErrorMessage])
 
-  const authors = cloneDeep(authorQuery.data.allAuthors)
+  useEffect(() => {
+    if (mounted && authorQuery.error) {
+      setErrorMessage(authorQuery?.error?.message)
+      let timer
+      timer = setTimeout(() => {
+        setErrorMessage('')
+        clearTimeout(timer)
+      }, 5000)
+    }
+  }, [authorQuery.error, mounted, setErrorMessage])
 
-  const handleSubmit = (event) => {
+  const authors = cloneDeep(authorQuery?.data?.allAuthors)
+
+  const submit = (event) => {
     event.preventDefault()
 
     editAuthor({
@@ -36,20 +67,26 @@ const Authors = () => {
         bornInput: { born: born },
       },
     })
-    setAuthor(null)
-    setBorn(null)
+    setAuthor('')
+    setBorn('')
+  }
+
+  if (authorQuery.loading || loading) {
+    return <p>loading...</p>
   }
 
   return (
-    <div>
-      <h2>authors</h2>
-      <table>
-        <tbody>
+    <Container className="wrapper">
+      <h2>Authors</h2>
+      <Table responsive>
+        <thead>
           <tr>
-            <th></th>
-            <th>born</th>
-            <th>books</th>
+            <th>Name</th>
+            <th>Born</th>
+            <th>Books</th>
           </tr>
+        </thead>
+        <tbody>
           {authors.map(({ id, name, born, bookCount }) => (
             <tr key={id}>
               <td>{name}</td>
@@ -58,35 +95,46 @@ const Authors = () => {
             </tr>
           ))}
         </tbody>
-      </table>
-      <div>
-        <h3>set birthyear</h3>
-        <form spellCheck="false" onSubmit={handleSubmit}>
-          <div>
-            <label htmlFor="author">name</label>
-            <select
-              name="author"
-              onChange={({ target }) => setAuthor(target.value)}
-            >
-              <option label="-- select an option --"></option>
-              {authors.map(({ id, name }) => (
-                <option key={id} value={id}>
-                  {name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label htmlFor="born">born</label>
-            <input
-              type="text"
-              onChange={({ target }) => setBorn(Number(target.value))}
-            />
-          </div>
-          <button type="submit">update author</button>
-        </form>
-      </div>
-    </div>
+      </Table>
+      {authUser ? (
+        <div className="mt-5" style={{ width: '40%' }}>
+          <h3>Set Birthyear</h3>
+          <Form spellCheck="false" onSubmit={submit}>
+            <Form.Group className="mb-3 mt-3">
+              <Form.Label htmlFor="author">Name</Form.Label>
+              <Form.Select
+                name="author"
+                onChange={({ target }) => setAuthor(target.value)}
+              >
+                <option>-- select an option --</option>
+                {authors.map(({ id, name }) => (
+                  <option key={id} value={id}>
+                    {name}
+                  </option>
+                ))}
+              </Form.Select>
+            </Form.Group>
+            <Form.Group className="mb-3" controlId="born">
+              <Form.Label>Born</Form.Label>
+              <Form.Control
+                placeholder="Author's year of birth"
+                type="text"
+                onChange={({ target }) => setBorn(Number(target.value))}
+              />
+            </Form.Group>
+            <Form.Group className="mt-4">
+              <Button
+                type="submit"
+                variant="outline-secondary"
+                className="btn-lg btn-block"
+              >
+                Update Author
+              </Button>
+            </Form.Group>
+          </Form>
+        </div>
+      ) : null}
+    </Container>
   )
 }
 

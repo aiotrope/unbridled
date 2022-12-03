@@ -7,6 +7,8 @@ import { useNavigate, Navigate } from 'react-router-dom'
 import Button from 'react-bootstrap/Button'
 import Form from 'react-bootstrap/Form'
 import Container from 'react-bootstrap/Container'
+import Col from 'react-bootstrap/Col'
+import Row from 'react-bootstrap/Row'
 import pkg from 'lodash'
 const { cloneDeep } = pkg
 
@@ -89,50 +91,59 @@ export const Signup = ({
   const genreClone = cloneDeep(genreQuery?.data?.allGenres)
 
   return (
-    <Container className="forms">
+    <Container className="wrapper">
       <h2>Create an account</h2>
-      <Form ref={formRef} onSubmit={submit}>
-        <Form.Group className="mb-3" controlId="username">
-          <Form.Label>Username</Form.Label>
-          <Form.Control
-            type="text"
-            placeholder="Enter a username"
-            onChange={({ target }) => setUsername(target.value)}
-          />
-          <Form.Text className="text-muted">
-            Five characters in length. Upper/lower case, numbers and special
-            characters are allowed.
-          </Form.Text>
-        </Form.Group>
-
-        <Form.Group className="mb-3" controlId="password">
-          <Form.Label>Password</Form.Label>
-          <Form.Control
-            type="password"
-            placeholder="Enter a password"
-            onChange={({ target }) => setPassword(target.value)}
-          />
-          <Form.Text className="text-muted">
-            Three characters in length. Upper/lower case, numbers and special
-            characters are allowed.
-          </Form.Text>
-        </Form.Group>
-
-        {genreClone.map((genre) => (
-          <div key={genre.id} className="form-check form-check-inline">
-            <input
-              className="form-check-input mb-4"
-              type="checkbox"
-              name={genre.category}
-              id={genre.id}
-              value={genre.id}
-              onChange={onChangeHandler}
+      <Form ref={formRef} className="mt-3" onSubmit={submit}>
+        <Row>
+          <Form.Group as={Col} controlId="username">
+            <Form.Label>Username</Form.Label>
+            <Form.Control
+              type="text"
+              placeholder="Enter a username"
+              onChange={({ target }) => setUsername(target.value)}
             />
-            <label className="form-check-label" htmlFor={genre.category}>
-              {genre.category}
-            </label>
-          </div>
-        ))}
+            <Form.Text className="text-muted">
+              Five characters in length. Upper/lower case, numbers and special
+              characters are allowed.
+            </Form.Text>
+          </Form.Group>
+
+          <Form.Group as={Col} controlId="password">
+            <Form.Label>Password</Form.Label>
+            <Form.Control
+              type="password"
+              placeholder="Enter a password"
+              onChange={({ target }) => setPassword(target.value)}
+            />
+            <Form.Text className="text-muted">
+              Three characters in length. Upper/lower case, numbers and special
+              characters are allowed.
+            </Form.Text>
+          </Form.Group>
+        </Row>
+
+        <Form.Group className="mb-3 mt-3">
+          <Form.Label>Select at least one genre</Form.Label>
+          <br />
+          {genreClone.map((genre) => (
+            <div key={genre.id} className="form-check form-check-inline">
+              <input
+                className="form-check-input mb-4"
+                type="checkbox"
+                name={genre.category}
+                id={genre.id}
+                value={genre.id}
+                onChange={onChangeHandler}
+              />
+              <label className="form-check-label" htmlFor={genre.category}>
+                {genre.category
+                  .charAt(0)
+                  .toUpperCase()
+                  .concat(genre.category.substring(1))}
+              </label>
+            </div>
+          ))}
+        </Form.Group>
 
         <Form.Group>
           <Button variant="primary" type="submit">

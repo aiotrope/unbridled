@@ -180,19 +180,18 @@ export const resolvers = {
         args.password,
         user.passwordHash
       )
-
       const regexPass =
         /^[a-zA-Z0-9$&+,:;=?@#|'<>.^*()%!-{}€"'ÄöäÖØÆ`~_]{3,}$/gm
       const regexUser =
         /^[a-zA-Z0-9$&+,:;=?@#|'<>.^*()%!-{}€"'ÄöäÖØÆ`~_]{5,}$/gm
       const testPassword = regexPass.test(args.password)
       const testUsername = regexUser.test(args.username)
-      if (args.username.length < 5 && !testUsername) {
+      if (args.username.length < 5 || !testUsername) {
         throw new GraphQLError(
           'Invalid! Check if you entered your correct username or password',
           { extensions: { code: 'BAD_USER_INPUT', argumentName: 'username' } }
         )
-      } else if (args.password.length < 3 && !testPassword) {
+      } else if (args.password.length < 3 || !testPassword) {
         throw new GraphQLError(
           'Invalid! Check if you entered your correct username or password',
           { extensions: { code: 'BAD_USER_INPUT', argumentName: 'password' } }
@@ -202,7 +201,7 @@ export const resolvers = {
           'Wrong credentials! Check if you entered your correct username or password',
           { extensions: { code: 'BAD_USER_INPUT' } }
         )
-      } else {
+      } else if (user && passwordVerified) {
         try {
           const userToken = {
             username: user.username,
@@ -225,6 +224,10 @@ export const resolvers = {
             extensions: { code: 'BAD_REQUEST' },
           })
         }
+      } else {
+        throw new GraphQLError("Can't processed login request", {
+          extensions: { code: 'BAD_REQUEST' },
+        })
       }
     },
     addAuthor: async (root, args) => {
@@ -251,24 +254,60 @@ export const resolvers = {
           }
         )
       } else if (!author.includes(args.author)) {
-        throw new GraphQLError(`Invalid! ${args.author} not found!`, {
-          extensions: { code: 'BAD_USER_INPUT', argumentName: 'author' },
-        })
+        throw new GraphQLError(
+          `Invalid! No author with this name (${args.author}) found!`,
+          {
+            extensions: { code: 'BAD_USER_INPUT', argumentName: 'author' },
+          }
+        )
+      } else if (args.author.length < 1) {
+        throw new GraphQLError(
+          `Invalid! Please provide author for the book entry!`,
+          {
+            extensions: { code: 'BAD_USER_INPUT', argumentName: 'author' },
+          }
+        )
+      } else if (!args.published) {
+        throw new GraphQLError(
+          `Invalid! Please provide publication year for the book entry!`,
+          {
+            extensions: { code: 'BAD_USER_INPUT', argumentName: 'published' },
+          }
+        )
+      } else if (args.genres.length < 1) {
+        throw new GraphQLError(
+          `Invalid! Select at least on genre category for book entry!`,
+          {
+            extensions: { code: 'BAD_USER_INPUT', argumentName: 'genres' },
+          }
+        )
       } else {
         try {
           const userInput = { ...args }
           let book = new Book(userInput)
           const newBook = await Book.create(book)
           if (newBook) {
-            return newBook
+            const msg = `Added new book: ${newBook.title}.`
+            const response = {
+              id: newBook.id,
+              title: newBook.title,
+              published: newBook.published,
+              author: newBook.author,
+              genres: newBook.genres,
+              successAddBookMessage: msg,
+            }
+            return response
+          } else {
+            throw new GraphQLError("Can't processed AddBook request", {
+              extensions: { code: 'BAD_REQUEST' },
+            })
           }
         } catch (error) {
           if (error) {
             logger.error(error.extensions?.code)
           }
-
-          throw new GraphQLError("Can't processed addBook request", {
-            extensions: { code: 'BAD_USER_INPUT' },
+          throw new GraphQLError("Can't processed AddBook request", {
+            extensions: { code: 'BAD_REQUEST' },
           })
         }
       }
@@ -317,17 +356,43 @@ export const resolvers = {
     },
 
     editAuthor: async (parent, args) => {
-      try {
-        const author = await Author.findByIdAndUpdate(args.id, args.bornInput, {
-          new: true,
+      const authorAtStart = await Author.findById(args.id)
+      if (!authorAtStart) {
+        throw new GraphQLError(`Select an author for update!`, {
+          extensions: { code: 'BAD_USER_INPUT', argumentName: 'id' },
         })
-        if (author) {
-          return author
+      } else if (!args.bornInput.born) {
+        throw new GraphQLError("Provide update for author's year of birth", {
+          extensions: { code: 'BAD_USER_INPUT', argumentName: 'born' },
+        })
+      } else {
+        try {
+          const author = await Author.findByIdAndUpdate(
+            args.id,
+            args.bornInput,
+            {
+              new: true,
+            }
+          )
+          if (author) {
+            const msg = `${author.name} year of birth updated from ${authorAtStart.born} to ${author.born}`
+            const response = {
+              id: author.id,
+              name: author.name,
+              born: author.born,
+              successEditAuthorMessage: msg,
+            }
+            return response
+          } else {
+            throw new GraphQLError("Can't processed editAuthor request", {
+              extensions: { code: 'BAD_REQUEST' },
+            })
+          }
+        } catch (error) {
+          throw new GraphQLError("Can't processed editAuthor request", {
+            extensions: { code: 'BAD_REQUEST' },
+          })
         }
-      } catch (error) {
-        throw new GraphQLError("Can't processed editAuthor request", {
-          extensions: { code: 'BAD_USER_INPUT' },
-        })
       }
     },
   },

@@ -28,19 +28,27 @@ const server = new ApolloServer({
   resolvers,
   context: async ({ req }) => {
     const auth = req ? req.headers.authorization : null
-    if (auth && auth.toLowerCase().startsWith('bearer')) {
-      const decodedToken = jwt.verify(auth.substring(7), jwt_key)
-      const currentUser = await User.findById(decodedToken.id)
-        .populate('favoriteGenre', { id: 1, category: 1 })
-        .populate('books', { id: 1, title: 1 })
-      return { currentUser }
-    } else {
+
+    try {
+      if (auth && auth.toLowerCase().startsWith('bearer')) {
+        const decodedToken = jwt.verify(auth.substring(7), jwt_key)
+        const currentUser = await User.findById(decodedToken.id)
+          .populate('favoriteGenre', { id: 1, category: 1 })
+          .populate('books', { id: 1, title: 1 })
+
+        return { currentUser }
+      } else {
+        throw new GraphQLError('User not authenticated', {
+          extensions: { code: 'UNAUTHENTICATED', http: { status: 401 } },
+        })
+      }
+    } catch (error) {
       throw new GraphQLError('User not authenticated', {
         extensions: { code: 'UNAUTHENTICATED', http: { status: 401 } },
       })
     }
   },
-  plugins: [ApolloServerPluginDrainHttpServer({ httpServer })]
+  plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
 })
 
 const start = async () => {
