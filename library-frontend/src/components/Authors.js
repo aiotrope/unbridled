@@ -9,7 +9,7 @@ import Button from 'react-bootstrap/Button'
 import pkg from 'lodash'
 const { cloneDeep } = pkg
 
-const Authors = ({ mounted, setSuccessMessage, setErrorMessage, authUser }) => {
+const Authors = ({ mounted, setSuccessMessage, setErrorMessage, me }) => {
   const [author, setAuthor] = useState(null)
   const [born, setBorn] = useState(null)
 
@@ -87,7 +87,7 @@ const Authors = ({ mounted, setSuccessMessage, setErrorMessage, authUser }) => {
           </tr>
         </thead>
         <tbody>
-          {authors.map(({ id, name, born, bookCount }) => (
+          {authors?.map(({ id, name, born, bookCount }) => (
             <tr key={id}>
               <td>{name}</td>
               <td>{born}</td>
@@ -96,7 +96,7 @@ const Authors = ({ mounted, setSuccessMessage, setErrorMessage, authUser }) => {
           ))}
         </tbody>
       </Table>
-      {authUser ? (
+      {me ? (
         <div className="mt-5" style={{ width: '40%' }}>
           <h3>Set Birthyear</h3>
           <Form spellCheck="false" onSubmit={submit}>
@@ -107,7 +107,7 @@ const Authors = ({ mounted, setSuccessMessage, setErrorMessage, authUser }) => {
                 onChange={({ target }) => setAuthor(target.value)}
               >
                 <option>-- select an option --</option>
-                {authors.map(({ id, name }) => (
+                {authors?.map(({ id, name }) => (
                   <option key={id} value={id}>
                     {name}
                   </option>

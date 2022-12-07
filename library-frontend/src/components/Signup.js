@@ -12,12 +12,7 @@ import Row from 'react-bootstrap/Row'
 import pkg from 'lodash'
 const { cloneDeep } = pkg
 
-export const Signup = ({
-  mounted,
-  setSuccessMessage,
-  setErrorMessage,
-  authUser,
-}) => {
+export const Signup = ({ mounted, setSuccessMessage, setErrorMessage, me }) => {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [genre, setGenre] = useState('')
@@ -66,7 +61,7 @@ export const Signup = ({
 
   if (genreQuery.loading || loading) return <p>loading...</p>
   if (genreQuery.error) return `Error: ${genreQuery.error.message}`
-  if (authUser !== null) {
+  if (me !== null) {
     return <Navigate to={'/'} />
   }
 
@@ -93,7 +88,7 @@ export const Signup = ({
   return (
     <Container className="wrapper">
       <h2>Create an account</h2>
-      <Form ref={formRef} className="mt-3" onSubmit={submit}>
+      <Form spellCheck="false" ref={formRef} className="mt-3" onSubmit={submit}>
         <Row>
           <Form.Group as={Col} controlId="username">
             <Form.Label>Username</Form.Label>

@@ -1,6 +1,6 @@
-const mongoose = require('mongoose')
+import { Schema, model } from 'mongoose'
 
-const GenreSchema = new mongoose.Schema(
+const GenreSchema = new Schema(
   {
     category: {
       type: String,
@@ -10,13 +10,17 @@ const GenreSchema = new mongoose.Schema(
       minLength: 4,
       validate: {
         validator: (val) => {
-          return /^[a-zA-Z\s-]{4,}?$/gm.test(
-            val
-          )
+          return /^[a-zA-Z\s-]{4,}?$/gm.test(val)
         },
         message: (props) => `${props.value} is not a valid genre!`,
       },
     },
+    books: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'Book',
+      },
+    ],
   },
   { timestamps: true }
 )
@@ -26,10 +30,9 @@ GenreSchema.set('toJSON', {
     retObject.id = retObject._id.toString()
     delete retObject._id
     delete retObject.__v
-    delete retObject.password
   },
 })
 
-const Genre = mongoose.model('Genre', GenreSchema)
+const Genre = model('Genre', GenreSchema)
 
 module.exports = Genre

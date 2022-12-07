@@ -12,7 +12,7 @@ import pkg from 'lodash'
 
 const { cloneDeep } = pkg
 
-const NewBook = ({ mounted, setSuccessMessage, setErrorMessage, authUser }) => {
+const NewBook = ({ mounted, setSuccessMessage, setErrorMessage, me }) => {
   const [title, setTitle] = useState('')
   const [author, setAuthor] = useState('')
   const [published, setPublished] = useState('')
@@ -25,7 +25,7 @@ const NewBook = ({ mounted, setSuccessMessage, setErrorMessage, authUser }) => {
   const navigate = useNavigate()
 
   const [addBook, { error, loading, data }] = useMutation(ADD_BOOK, {
-    refetchQueries: [{ query: ALL_AUTHORS }, { query: ALL_BOOKS }],
+    refetchQueries: [{ query: ALL_BOOKS }, { query: ALL_AUTHORS }],
   })
 
   useEffect(() => {
@@ -51,7 +51,7 @@ const NewBook = ({ mounted, setSuccessMessage, setErrorMessage, authUser }) => {
         setPublished('')
         setGenre('')
         setGenres([])
-        navigate('/')
+        navigate('/books')
         clearTimeout(timer)
       }, 4000)
     }
@@ -115,14 +115,14 @@ const NewBook = ({ mounted, setSuccessMessage, setErrorMessage, authUser }) => {
     return <p>loading...</p>
   }
 
-  if (!authUser) {
+  if (me === null) {
     return <Navigate to={'/login'} />
   }
 
   return (
     <Container className="wrapper">
       <h2>Add Book Entry</h2>
-      <Form onSubmit={submit} spellCheck="false">
+      <Form spellCheck="false" onSubmit={submit}>
         <Form.Group className="mb-3 mt-3">
           <Form.Label>Title</Form.Label>
           <Form.Control

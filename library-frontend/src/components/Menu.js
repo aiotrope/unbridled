@@ -1,5 +1,6 @@
 //import { Link, NavLink } from 'react-router-dom'
 import React from 'react'
+import { useApolloClient } from '@apollo/client'
 import { LinkContainer } from 'react-router-bootstrap'
 import { useNavigate } from 'react-router-dom'
 import Button from 'react-bootstrap/Button'
@@ -7,16 +8,18 @@ import Container from 'react-bootstrap/Container'
 import Nav from 'react-bootstrap/Nav'
 import Navbar from 'react-bootstrap/Navbar'
 
-const AuthMenu = ({ authUser, setAuthUsername }) => {
+const AuthMenu = ({ setToken, me, setMe }) => {
+  const client = useApolloClient()
   const navigate = useNavigate()
 
   const onLogout = () => {
-    setAuthUsername('')
-    localStorage.removeItem('user')
-    const user = JSON.parse(localStorage.getItem('user'))
-    if (user === null) {
+    client.resetStore()
+    setMe(null)
+    setToken(null)
+    localStorage.clear()
+    const token = localStorage.getItem('token')
+    if (token === null) {
       navigate('/login')
-      window.location.reload()
     }
   }
   return (
@@ -38,12 +41,13 @@ const AuthMenu = ({ authUser, setAuthUsername }) => {
             <LinkContainer to={'/add'}>
               <Nav.Link>Add Book</Nav.Link>
             </LinkContainer>
-
-            <Nav.Link href="#pricing">Recommend</Nav.Link>
+            <LinkContainer to={'/recommend'}>
+              <Nav.Link>Recommend</Nav.Link>
+            </LinkContainer>
           </Nav>
           <Nav>
             <LinkContainer to={'/me'}>
-              <Button variant="outline-light">{authUser}</Button>
+              <Button variant="outline-light">{me.username}</Button>
             </LinkContainer>
             <div className="mx-2 my-1"></div>
             <Button variant="info" onClick={onLogout}>
@@ -87,9 +91,9 @@ const NonAuthMenu = () => (
   </Navbar>
 )
 
-export const Menu = ({ authUser, setAuthUsername }) => {
-  return authUser ? (
-    <AuthMenu authUser={authUser} setAuthUsername={setAuthUsername} />
+export const Menu = ({ token, setToken, me, setMe }) => {
+  return me ? (
+    <AuthMenu token={token} setToken={setToken} me={me} setMe={setMe} />
   ) : (
     <NonAuthMenu />
   )

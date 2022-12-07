@@ -8,9 +8,10 @@ import Genre from '../models/genre.js'
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
 import logger from '../utils/logger.js'
+import mongoose from 'mongoose'
 import pkg from 'lodash'
 
-const { countBy, filter } = pkg
+const { countBy, filter, map, indexOf, includes } = pkg
 
 export const resolvers = {
   Query: {
@@ -20,12 +21,30 @@ export const resolvers = {
           .populate('favoriteGenre', {
             id: 1,
             category: 1,
+            books: 1,
           })
-          .populate('books', { title: 1 })
+          .populate('books', { id: 1, title: 1 })
         if (users) return users
       } catch (error) {
         throw new GraphQLError("Can't processed allUsers request", {
           extensions: { code: 'BAD_REQUEST' },
+        })
+      }
+    },
+    me: async (parent, args, contextValue) => {
+      const currentUser = contextValue.currentUser
+      try {
+        if (!currentUser) {
+          throw new GraphQLError('User not authenticated', {
+            extensions: { code: 'UNAUTHENTICATED' },
+            http: { status: 401 },
+          })
+        }
+        return currentUser
+      } catch (error) {
+        throw new GraphQLError('User not authenticated', {
+          extensions: { code: 'UNAUTHENTICATED' },
+          http: { status: 401 },
         })
       }
     },
@@ -53,7 +72,13 @@ export const resolvers = {
 
     allAuthors: async () => {
       try {
-        const authors = await Author.find({})
+        const authors = await Author.find({}).populate('booksCollection', {
+          id: 1,
+          title: 1,
+          published: 1,
+          author: 1,
+          genres: 1,
+        })
         if (authors) {
           return authors
         }
@@ -65,7 +90,10 @@ export const resolvers = {
     },
     allBooks: async (parent, args) => {
       try {
-        const books = await Book.find({}).populate('author', { name: 1 })
+        const books = await Book.find({})
+          .populate('author', { id: 1, name: 1, born: 1, booksCollection: 1 })
+          .populate('user', { id: 1, username: 1, favoriteGenre: 1 })
+          .populate('genres', { id: 1, category: 1, books: 1 })
         let response
         if (args.author) {
           response = filter(books, function (book) {
@@ -82,10 +110,23 @@ export const resolvers = {
 
           return response
         } else if (args.genre) {
-          response = filter(books, function (x) {
-            return x.genres.includes(args.genre)
-          })
-          return response
+          const genre = await Genre.find({})
+            .populate('category')
+            .populate('books', {
+              id: 1,
+              title: 1,
+              published: 1,
+              author: 1,
+              user: 1,
+              genres: 1,
+            })
+          const genreIds = map(genre, 'category')
+          const index = indexOf(genreIds, args.genre, 0)
+          const findBooksByGenre = await Book.find({ genres: genre[index] })
+            .populate('genres', { id: 1, category: 1, books: 1 })
+            .populate('author', { id: 1, name: 1 })
+
+          return findBooksByGenre
         } else {
           return books
         }
@@ -97,7 +138,14 @@ export const resolvers = {
     },
     allGenres: async () => {
       try {
-        const genres = await Genre.find({})
+        const genres = await Genre.find({}).populate('books', {
+          id: 1,
+          title: 1,
+          genres: 1,
+          user: 1,
+          author: 1,
+          published: 1,
+        })
         if (genres) return genres
       } catch (error) {
         throw new GraphQLError("Can't processed allGenres request", {
@@ -157,6 +205,7 @@ export const resolvers = {
 
         try {
           const newUser = await User.create(user)
+
           if (newUser) {
             const response = {
               id: newUser.id,
@@ -167,8 +216,9 @@ export const resolvers = {
             return response
           }
         } catch (error) {
+          logger.error(error)
           throw new GraphQLError(
-            "Can't processed createUser request due to some internal issues",
+            "Can't processed createUser request due to some internal issues.",
             { extensions: { code: 'BAD_REQUEST' } }
           )
         }
@@ -212,7 +262,7 @@ export const resolvers = {
           const userId = decode.id
           const loginUsername = user.username
           const msg = `Welcome back ${loginUsername}`
-          //logger.http(user.username)
+
           return {
             token: token,
             id: userId,
@@ -243,8 +293,14 @@ export const resolvers = {
         })
       }
     },
-    addBook: async (parent, args) => {
+    addBook: async (parent, args, contextValue) => {
+      const currentUser = contextValue.currentUser
       const authors = await Author.find({})
+      const books = await Book.find({})
+      const filter = books.filter((book) =>
+        book.title.toUpperCase().includes(args.title.toUpperCase())
+      )
+
       const author = authors.map((a) => a.id)
       if (args.title.length < 5) {
         throw new GraphQLError(
@@ -281,13 +337,38 @@ export const resolvers = {
             extensions: { code: 'BAD_USER_INPUT', argumentName: 'genres' },
           }
         )
+      } else if (filter.length > 0) {
+        throw new GraphQLError(
+          `${args.title} invalid! your title entry is not unique!`,
+          { extensions: { code: 'BAD_USER_INPUT', argumentName: 'title' } }
+        )
+      } else if (!contextValue.currentUser) {
+        throw new GraphQLError('User is not authenticated!', {
+          extensions: { code: 'UNAUTHENTICATED', http: { status: 401 } },
+        })
       } else {
         try {
-          const userInput = { ...args }
-          let book = new Book(userInput)
+          let book = new Book({
+            ...args,
+            user: mongoose.Types.ObjectId(currentUser.id),
+          })
           const newBook = await Book.create(book)
+
           if (newBook) {
             const msg = `Added new book: ${newBook.title}.`
+            currentUser.books = currentUser.books.concat(newBook)
+            await currentUser.save()
+
+            for (let item of args.genres) {
+              const genre = await Genre.findById(item)
+              genre.books = genre.books.concat(newBook)
+              await genre.save()
+            }
+
+            const author = await Author.findById(args.author)
+            author.booksCollection = author.booksCollection.concat(newBook)
+            await author.save()
+
             const response = {
               id: newBook.id,
               title: newBook.title,
@@ -296,6 +377,7 @@ export const resolvers = {
               genres: newBook.genres,
               successAddBookMessage: msg,
             }
+
             return response
           } else {
             throw new GraphQLError("Can't processed AddBook request", {
@@ -324,7 +406,6 @@ export const resolvers = {
           .toUpperCase()
           .includes(args.genreInput.category.toUpperCase())
       )
-      logger.http(filter.length)
       if (args.genreInput.category.length < 4) {
         throw new GraphQLError(
           `${args.genreInput.category} invalid! Category must be at least 4 characters in length`,
@@ -355,13 +436,13 @@ export const resolvers = {
       }
     },
 
-    editAuthor: async (parent, args) => {
+    editAuthor: async (parent, args, contextValue) => {
       const authorAtStart = await Author.findById(args.id)
-      if (!authorAtStart) {
-        throw new GraphQLError(`Select an author for update!`, {
-          extensions: { code: 'BAD_USER_INPUT', argumentName: 'id' },
+      if (!contextValue.currentUser) {
+        throw new GraphQLError('User is not authenticated!', {
+          extensions: { code: 'UNAUTHENTICATED', http: { status: 401 } },
         })
-      } else if (!args.bornInput.born) {
+      } else if (!args.bornInput) {
         throw new GraphQLError("Provide update for author's year of birth", {
           extensions: { code: 'BAD_USER_INPUT', argumentName: 'born' },
         })
@@ -402,7 +483,6 @@ export const resolvers = {
         const books = await Book.find({})
         const authorNames = countBy(books, 'author')
         const booksByAuthor = authorNames[parent.id]
-        //logger.warn(booksByAuthor)
         if (booksByAuthor) return booksByAuthor
       } catch (error) {
         logger.error(error.extensions?.code)
@@ -410,6 +490,36 @@ export const resolvers = {
           extensions: { code: 'BAD_REQUEST' },
         })
       }
+    },
+  },
+  User: {
+    recommendation: async (parent, __, contextValue) => {
+      const currentUser = contextValue.currentUser
+      if (!currentUser) {
+        throw new GraphQLError('User is not authenticated!', {
+          extensions: { code: 'UNAUTHENTICATED', http: { status: 401 } },
+        })
+      } else {
+        const genre = await Genre.find({}).populate('books', {
+          id: 1,
+          title: 1,
+          published: 1,
+          author: 1,
+          genres: 1,
+          user: 1,
+        })
+        const favorite = map(parent.favoriteGenre, 'id')
+        const booksByGenreRecommendation = filter(genre, (val) =>
+          includes(favorite, val.id)
+        )
+        return booksByGenreRecommendation
+      }
+    },
+  },
+  Book: {
+    maker: async (parent) => {
+      const author = await Author.findById(parent.author)
+      return author
     },
   },
 }

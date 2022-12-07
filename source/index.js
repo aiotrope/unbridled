@@ -2,7 +2,6 @@ import { ApolloServer } from '@apollo/server'
 import { expressMiddleware } from '@apollo/server/express4'
 import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHttpServer'
 //import { ApolloServerErrorCode } from '@apollo/server/errors'
-import { GraphQLError } from 'graphql'
 import express from 'express'
 import http from 'http'
 import MongoDatabase from './utils/database.js'
@@ -26,28 +25,6 @@ const httpServer = http.createServer(app)
 const server = new ApolloServer({
   typeDefs,
   resolvers,
-  context: async ({ req }) => {
-    const auth = req ? req.headers.authorization : null
-
-    try {
-      if (auth && auth.toLowerCase().startsWith('bearer')) {
-        const decodedToken = jwt.verify(auth.substring(7), jwt_key)
-        const currentUser = await User.findById(decodedToken.id)
-          .populate('favoriteGenre', { id: 1, category: 1 })
-          .populate('books', { id: 1, title: 1 })
-
-        return { currentUser }
-      } else {
-        throw new GraphQLError('User not authenticated', {
-          extensions: { code: 'UNAUTHENTICATED', http: { status: 401 } },
-        })
-      }
-    } catch (error) {
-      throw new GraphQLError('User not authenticated', {
-        extensions: { code: 'UNAUTHENTICATED', http: { status: 401 } },
-      })
-    }
-  },
   plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
 })
 
@@ -62,7 +39,26 @@ const start = async () => {
       crossOriginEmbedderPolicy: false,
     }),
     bodyParser.json(),
-    expressMiddleware(server)
+    expressMiddleware(server, {
+      context: async ({ req }) => {
+        const auth = req ? req.headers.authorization : null
+        if (auth && auth.toLowerCase().startsWith('bearer')) {
+          const decodedToken = jwt.verify(auth.substring(7), jwt_key)
+          const currentUser = await User.findById(decodedToken.id)
+            .populate('favoriteGenre', { id: 1, category: 1, books: 1 })
+            .populate('books', {
+              id: 1,
+              title: 1,
+              user: 1,
+              author: 1,
+              genres: 1,
+              published: 1
+            })
+
+          return { currentUser }
+        }
+      },
+    })
   )
 
   await new Promise((resolve) => httpServer.listen({ port: port }, resolve))

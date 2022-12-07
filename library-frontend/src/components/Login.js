@@ -14,7 +14,8 @@ export const Login = ({
   mounted,
   setSuccessMessage,
   setErrorMessage,
-  authUser,
+  setToken,
+  me,
 }) => {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
@@ -27,7 +28,9 @@ export const Login = ({
   useEffect(() => {
     if (mounted && data?.login) {
       setSuccessMessage(data?.login?.successLoginMessage)
-      localStorage.setItem('user', JSON.stringify(data?.login))
+      const token = data?.login?.token
+      setToken(token)
+      localStorage.setItem('token', token)
       let timer
       timer = setTimeout(() => {
         setSuccessMessage('')
@@ -36,7 +39,7 @@ export const Login = ({
         window.location.reload()
       }, 3000)
     }
-  }, [data?.login, mounted, navigate, setSuccessMessage])
+  }, [data?.login, mounted, navigate, setSuccessMessage, setToken])
 
   useEffect(() => {
     if (mounted && error) {
@@ -77,15 +80,14 @@ export const Login = ({
   if (loading) {
     return <p>loading...</p>
   }
-  if (authUser !== null) {
+  if (me !== null) {
     return <Navigate to={'/'} />
   }
 
-  console.log(error)
   return (
     <Container className="wrapper">
       <h2>Login to your account</h2>
-      <Form onSubmit={submit} className="mt-2">
+      <Form spellCheck="false" onSubmit={submit} className="mt-2">
         <Row>
           <Col xs={7}>
             <Form.Group className="mb-3 mt-3" controlId="username">

@@ -13,3 +13,5 @@ Date: 22.11.2022
 - [Solution for Exercise 8.8 - 8.12](https://github.com/aiotrope/unbridled/tree/8.8/library-frontend)
 
 - [Solution for Exercise 8.13 - 8.16](https://github.com/aiotrope/unbridled/tree/8.13)
+
+- [Solution for Exercise 8.17 - 8.22](https://github.com/aiotrope/unbridled/tree/8.17)

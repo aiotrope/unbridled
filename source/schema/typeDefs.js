@@ -2,9 +2,10 @@ export const typeDefs = `#graphql
     type User {
         username: String!
         id:ID!
-        favoriteGenre: [Genre!]!
+        favoriteGenre: [Genre]!
         books: [Book!]!
         successSignupMessage: String!
+        recommendation: [Genre]!
     }
 
     input CreateUserInput {
@@ -25,6 +26,7 @@ export const typeDefs = `#graphql
         id: ID!
         born: Int
         bookCount: Int
+        booksCollection: [Book]!
         successEditAuthorMessage: String!
     }
 
@@ -40,6 +42,7 @@ export const typeDefs = `#graphql
     type Genre {
         category: String!
         id: ID!
+        books: [Book]!
     }
 
     input GenreInput {
@@ -49,32 +52,35 @@ export const typeDefs = `#graphql
     type Book {
         title: String!
         id: ID!
-        published: Int!
+        published: Int
         author: [Author!]!
-        genres: [String]!
+        genres: [Genre]!
+        user: [User!]!
         successAddBookMessage: String!
+        maker: Author
     }
 
     type Query {
         authorCount: Int!
         bookCount: Int!
         allUsers: [User!]!
+        me: User!
         allAuthors: [Author!]!
-        allBooks(author: String, authorId: String, genre: String): [Book!]!
+        allBooks(author: String authorId: String genre: String user: String): [Book!]!
         allGenres: [Genre!]!
     }
 
     type Mutation {
         createUser(createUserInput: CreateUserInput!): User
 
-        login(username: String! password: String!): Token
+        login(username: String!, password: String!): Token
 
         addAuthor(authorInput: AuthorInput!): Author
 
         addBook(
             title: String!
             published: Int!
-            author: ID!
+            author: String!
             genres: [ID!]!
         ): Book
 

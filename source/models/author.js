@@ -5,10 +5,17 @@ export const AuthorSchema = new Schema(
     name: {
       type: String,
       required: true,
+      unique: true
     },
     born: {
       type: Number,
     },
+    booksCollection: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'Book'
+      }
+    ]
   },
   { timestamps: true }
 )
