@@ -3,15 +3,14 @@ export const typeDefs = `#graphql
         username: String!
         id:ID!
         favoriteGenre: [Genre]!
-        books: [Book!]!
-        successSignupMessage: String!
-        recommendation: [Genre]!
+        bookEntries: [Book]!
+        successSignupMessage: String
     }
 
     input CreateUserInput {
         username: String!
         password: String!
-        favoriteGenre: [ID!]!
+        favoriteGenre: [String!]!
     }
 
     type Token {
@@ -22,11 +21,11 @@ export const typeDefs = `#graphql
     }
 
     type Author {
-        name: String
+        name: String!
         id: ID!
         born: Int
         bookCount: Int
-        booksCollection: [Book]!
+        books: [Book]!
         successEditAuthorMessage: String!
     }
 
@@ -43,6 +42,7 @@ export const typeDefs = `#graphql
         category: String!
         id: ID!
         books: [Book]!
+        users: [User]!
     }
 
     input GenreInput {
@@ -53,11 +53,9 @@ export const typeDefs = `#graphql
         title: String!
         id: ID!
         published: Int
-        author: [Author!]!
-        genres: [Genre]!
-        user: [User!]!
-        successAddBookMessage: String!
-        maker: Author
+        author: Author!
+        genres: [Genre!]!
+        user: User
     }
 
     type Query {
@@ -65,7 +63,7 @@ export const typeDefs = `#graphql
         bookCount: Int!
         allUsers: [User!]!
         me: User!
-        allAuthors: [Author!]!
+        allAuthors: [Author]!
         allBooks(author: String authorId: String genre: String user: String): [Book!]!
         allGenres: [Genre!]!
     }
@@ -82,7 +80,7 @@ export const typeDefs = `#graphql
             published: Int!
             author: String!
             genres: [ID!]!
-        ): Book
+        ): Book!
 
         addGenre(genreInput: GenreInput!): Genre
 

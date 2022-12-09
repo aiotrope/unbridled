@@ -16,7 +16,6 @@ export const ADD_BOOK = gql`
       id
       title
       published
-      successAddBookMessage
     }
   }
 `

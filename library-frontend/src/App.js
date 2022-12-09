@@ -12,6 +12,8 @@ import { Recommend } from './components/Recommend'
 import { NotFound } from './components/NotFound'
 import Container from 'react-bootstrap/Container'
 import { ME } from './graphql/queries'
+//import { BOOK_ADDED } from './graphql/subcriptions'
+//import { updateCache } from './utilities/updateCache'
 import './_App.scss'
 
 const App = () => {
@@ -45,6 +47,14 @@ const App = () => {
     }
     setAuthUserState()
   }, [currentUser?.data?.me])
+
+  /* useSubscription(BOOK_ADDED, {
+    onData: ({ data, client }) => {
+      const addedBook = data.data.bookAdded
+      setSuccessMessage(`${addedBook.title} added`)
+      updateCache(client.cache, { query: ALL_BOOKS }, addedBook)
+    },
+  }) */
 
   return (
     <Router>

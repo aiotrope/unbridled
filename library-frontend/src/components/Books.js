@@ -31,14 +31,7 @@ const Books = ({ mounted, setErrorMessage, genre }) => {
         refetch({ genre: '' })
       }
     }
-  }, [
-    categorization,
-    category,
-    data?.allBooks,
-    genreQuery?.data?.allGenres,
-    mounted,
-    refetch,
-  ])
+  }, [category, data?.allBooks, genreQuery?.data?.allGenres, mounted, refetch])
 
   useEffect(() => {
     if (mounted && categorization) {
@@ -70,10 +63,11 @@ const Books = ({ mounted, setErrorMessage, genre }) => {
     return <p>loading...</p>
   }
 
+  ///console.log(data.allBooks)
   return (
     <Container className="wrapper">
       <h2>Books</h2>
-      <Table striped>
+      <Table striped bordered hover size="sm">
         <thead>
           <tr>
             <th>Books</th>
@@ -85,9 +79,7 @@ const Books = ({ mounted, setErrorMessage, genre }) => {
           {sorted.map(({ id, title, author, published }) => (
             <tr key={id}>
               <td>{title}</td>
-              {author?.map(({ id, name }) => (
-                <td key={id}>{name}</td>
-              ))}
+              <td key={id}>{author.name}</td>
               <td>{published}</td>
             </tr>
           ))}
@@ -95,7 +87,6 @@ const Books = ({ mounted, setErrorMessage, genre }) => {
       </Table>
       <div className="mt-5">
         <h5>{category}</h5>
-
         <Form className="mt-3 mb-3">
           <Button
             variant="light"

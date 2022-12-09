@@ -6,30 +6,26 @@ const BookSchema = new Schema(
       type: String,
       required: true,
       trim: true,
-      unique: true
+      unique: true,
     },
     published: {
       type: Number,
       required: true,
     },
-    author: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: 'Author',
-      },
-    ],
+    author: {
+      type: Schema.Types.ObjectId,
+      ref: 'Author',
+    },
     genres: [
       {
         type: Schema.Types.ObjectId,
         ref: 'Genre',
       },
     ],
-    user: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: 'User',
-      },
-    ],
+    user: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+    },
   },
   { timestamps: true }
 )

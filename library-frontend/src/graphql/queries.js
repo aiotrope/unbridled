@@ -46,16 +46,18 @@ export const ME = gql`
     me {
       id
       username
-      recommendation {
+      favoriteGenre {
         id
         category
         books {
           id
           title
           published
-          maker {
+          author {
             id
             name
+            born
+            bookCount
           }
         }
       }

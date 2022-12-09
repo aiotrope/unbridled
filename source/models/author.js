@@ -10,7 +10,7 @@ export const AuthorSchema = new Schema(
     born: {
       type: Number,
     },
-    booksCollection: [
+    books: [
       {
         type: Schema.Types.ObjectId,
         ref: 'Book'

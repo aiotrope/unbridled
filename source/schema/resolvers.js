@@ -1,5 +1,6 @@
 /* eslint-disable quotes */
 import { jwt_key } from '../utils/config.js'
+//import { PubSub } from 'graphql-subscriptions'
 import { GraphQLError } from 'graphql'
 import User from '../models/user.js'
 import Author from '../models/author.js'
@@ -11,6 +12,7 @@ import logger from '../utils/logger.js'
 import mongoose from 'mongoose'
 import pkg from 'lodash'
 
+//const pubsub = new PubSub()
 const { countBy, filter, map, indexOf, includes } = pkg
 
 export const resolvers = {
@@ -18,12 +20,8 @@ export const resolvers = {
     allUsers: async () => {
       try {
         const users = await User.find({})
-          .populate('favoriteGenre', {
-            id: 1,
-            category: 1,
-            books: 1,
-          })
-          .populate('books', { id: 1, title: 1 })
+          .populate('favoriteGenre')
+          .populate('bookEntries')
         if (users) return users
       } catch (error) {
         throw new GraphQLError("Can't processed allUsers request", {
@@ -72,13 +70,7 @@ export const resolvers = {
 
     allAuthors: async () => {
       try {
-        const authors = await Author.find({}).populate('booksCollection', {
-          id: 1,
-          title: 1,
-          published: 1,
-          author: 1,
-          genres: 1,
-        })
+        const authors = await Author.find({})
         if (authors) {
           return authors
         }
@@ -213,10 +205,16 @@ export const resolvers = {
               favoriteGenre: newUser.favoriteGenre,
               successSignupMessage: `${newUser.username} signup successful!`,
             }
+            for (let item of args.createUserInput.favoriteGenre) {
+              const genre = await Genre.findById(item)
+              genre.users = genre.users.concat(newUser._id)
+              await genre.save()
+            }
+
             return response
           }
         } catch (error) {
-          logger.error(error)
+          //logger.error(error)
           throw new GraphQLError(
             "Can't processed createUser request due to some internal issues.",
             { extensions: { code: 'BAD_REQUEST' } }
@@ -355,8 +353,7 @@ export const resolvers = {
           const newBook = await Book.create(book)
 
           if (newBook) {
-            const msg = `Added new book: ${newBook.title}.`
-            currentUser.books = currentUser.books.concat(newBook)
+            currentUser.bookEntries = currentUser.bookEntries.concat(newBook)
             await currentUser.save()
 
             for (let item of args.genres) {
@@ -366,19 +363,10 @@ export const resolvers = {
             }
 
             const author = await Author.findById(args.author)
-            author.booksCollection = author.booksCollection.concat(newBook)
+            author.books = author.books.concat(newBook)
             await author.save()
 
-            const response = {
-              id: newBook.id,
-              title: newBook.title,
-              published: newBook.published,
-              author: newBook.author,
-              genres: newBook.genres,
-              successAddBookMessage: msg,
-            }
-
-            return response
+            return newBook
           } else {
             throw new GraphQLError("Can't processed AddBook request", {
               extensions: { code: 'BAD_REQUEST' },
@@ -493,6 +481,62 @@ export const resolvers = {
     },
   },
   User: {
+    favoriteGenre: async (parent) => {
+      const favorite = map(parent.favoriteGenre, 'id')
+      const genre = await Genre.find({})
+        .populate('books')
+      const booksByGenreRecommendation = filter(genre, (val) =>
+        includes(favorite, val.id)
+      )
+      return booksByGenreRecommendation
+    },
+  },
+  Book: {
+    author: async (parent) => {
+      const author = await Author.findById(parent.author)
+      return author
+    },
+  },
+}
+
+/*
+ Book: {
+    /*  author: async (parent) => {
+      const books = await Book.find({})
+        .populate('author', { id: 1, name: 1, born: 1, booksCollection: 1 })
+        .populate('user', { id: 1, username: 1, favoriteGenre: 1 })
+        .populate('genres', { id: 1, category: 1, books: 1 })
+      const authors = await Author.find({})
+      const filterAuthor = authors.filter(
+        (author) => author.id === parent.author
+      )
+      console.log(filterAuthor)
+      return filterAuthor
+    },
+    maker: async (parent) => {
+      const author = await Author.findById(parent.author)
+      return author
+    },
+    genreClassification: async (parent) => {
+      const genre = await Genre.findById(parent.genres)
+      return genre
+    },
+  },
+
+
+*/
+
+/*
+ Subscription: {
+    bookAdded: {
+      subscribe: () => pubsub.asyncIterator('BOOK_ADDED'),
+    },
+  },
+
+*/
+
+/*
+ User: {
     recommendation: async (parent, __, contextValue) => {
       const currentUser = contextValue.currentUser
       if (!currentUser) {
@@ -516,10 +560,5 @@ export const resolvers = {
       }
     },
   },
-  Book: {
-    maker: async (parent) => {
-      const author = await Author.findById(parent.author)
-      return author
-    },
-  },
-}
+
+*/

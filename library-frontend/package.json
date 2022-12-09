@@ -9,6 +9,7 @@
     "@testing-library/user-event": "^14.4.3",
     "bootstrap": "^5.2.3",
     "graphql": "^16.6.0",
+    "graphql-ws": "^5.11.2",
     "react": "^18.2.0",
     "react-bootstrap": "^2.6.0",
     "react-dom": "^18.2.0",

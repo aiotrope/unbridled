@@ -24,7 +24,7 @@ const UserSchema = new Schema(
         ref: 'Genre',
       },
     ],
-    books: [
+    bookEntries: [
       {
         type: Schema.Types.ObjectId,
         ref: 'Book',
@@ -39,7 +39,7 @@ UserSchema.set('toJSON', {
     retObject.id = retObject._id.toString()
     delete retObject._id
     delete retObject.__v
-    delete retObject.password
+    delete retObject.passwordHash
   },
 })
 

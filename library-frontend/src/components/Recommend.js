@@ -15,10 +15,10 @@ export const Recommend = ({ mounted, setErrorMessage, me, currentUser }) => {
   const { loading, error } = useQuery(ALL_BOOKS)
 
   useEffect(() => {
-    if (mounted && me?.recommendation) {
-      setBooksForUser(cloneDeep(me?.recommendation))
+    if (mounted && me?.favoriteGenre) {
+      setBooksForUser(cloneDeep(me?.favoriteGenre))
     }
-  }, [me?.recommendation, mounted])
+  }, [me?.favoriteGenre, mounted])
 
   useEffect(() => {
     if ((mounted && error) || (mounted && currentUser?.error)) {
@@ -60,10 +60,10 @@ export const Recommend = ({ mounted, setErrorMessage, me, currentUser }) => {
                   </tr>
                 </thead>
                 <tbody>
-                  {books.map(({ id, title, published, maker }) => (
+                  {books.map(({ id, title, published, author }) => (
                     <tr key={id}>
                       <td>{title}</td>
-                      <td>{maker.name}</td>
+                      <td>{author.name}</td>
                       <td>{published}</td>
                     </tr>
                   ))}

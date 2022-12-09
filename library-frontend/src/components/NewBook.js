@@ -42,7 +42,7 @@ const NewBook = ({ mounted, setSuccessMessage, setErrorMessage, me }) => {
 
   useEffect(() => {
     if (mounted && data?.addBook) {
-      setSuccessMessage(data?.addBook?.successAddBookMessage)
+      setSuccessMessage(`New book entitled: ${title} added!`)
       let timer
       timer = setTimeout(() => {
         setSuccessMessage('')
@@ -55,7 +55,7 @@ const NewBook = ({ mounted, setSuccessMessage, setErrorMessage, me }) => {
         clearTimeout(timer)
       }, 4000)
     }
-  }, [data?.addBook, mounted, navigate, setSuccessMessage])
+  }, [author, data?.addBook, mounted, navigate, setSuccessMessage, title])
 
   useEffect(() => {
     if (mounted && error) {
