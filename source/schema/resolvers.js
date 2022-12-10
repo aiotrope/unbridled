@@ -1,6 +1,6 @@
 /* eslint-disable quotes */
 import { jwt_key } from '../utils/config.js'
-//import { PubSub } from 'graphql-subscriptions'
+import { PubSub } from 'graphql-subscriptions'
 import { GraphQLError } from 'graphql'
 import User from '../models/user.js'
 import Author from '../models/author.js'
@@ -12,7 +12,7 @@ import logger from '../utils/logger.js'
 import mongoose from 'mongoose'
 import pkg from 'lodash'
 
-//const pubsub = new PubSub()
+const pubsub = new PubSub()
 const { countBy, filter, map, indexOf, includes } = pkg
 
 export const resolvers = {
@@ -366,7 +366,17 @@ export const resolvers = {
             author.books = author.books.concat(newBook)
             await author.save()
 
-            return newBook
+            const response = {
+              id: book.id,
+              title: book.title,
+              published: book.published,
+              author: book.author,
+              genres: book.genres,
+            }
+
+            pubsub.publish('BOOK_ADDED', { bookAdded: response })
+
+            return response
           } else {
             throw new GraphQLError("Can't processed AddBook request", {
               extensions: { code: 'BAD_REQUEST' },
@@ -481,14 +491,20 @@ export const resolvers = {
     },
   },
   User: {
-    favoriteGenre: async (parent) => {
-      const favorite = map(parent.favoriteGenre, 'id')
-      const genre = await Genre.find({})
-        .populate('books')
-      const booksByGenreRecommendation = filter(genre, (val) =>
-        includes(favorite, val.id)
-      )
-      return booksByGenreRecommendation
+    favoriteGenre: async (parent, __, contextValue) => {
+      const currentUser = contextValue.currentUser
+      if (!currentUser) {
+        throw new GraphQLError('User is not authenticated!', {
+          extensions: { code: 'UNAUTHENTICATED', http: { status: 401 } },
+        })
+      } else {
+        const favorite = map(parent.favoriteGenre, 'id')
+        const genres = await Genre.find({}).populate('books')
+        const booksByGenreRecommendation = filter(genres, (val) =>
+          includes(favorite, val.id)
+        )
+        return booksByGenreRecommendation
+      }
     },
   },
   Book: {
@@ -496,69 +512,18 @@ export const resolvers = {
       const author = await Author.findById(parent.author)
       return author
     },
-  },
-}
-
-/*
- Book: {
-    /*  author: async (parent) => {
-      const books = await Book.find({})
-        .populate('author', { id: 1, name: 1, born: 1, booksCollection: 1 })
-        .populate('user', { id: 1, username: 1, favoriteGenre: 1 })
-        .populate('genres', { id: 1, category: 1, books: 1 })
-      const authors = await Author.find({})
-      const filterAuthor = authors.filter(
-        (author) => author.id === parent.author
+    genres: async (parent) => {
+      const mapBookGenre = map(parent.genres, 'id')
+      const genres = await Genre.find({}).populate('books')
+      const filteredGenres = filter(genres, (val) =>
+        includes(mapBookGenre, val.id)
       )
-      console.log(filterAuthor)
-      return filterAuthor
-    },
-    maker: async (parent) => {
-      const author = await Author.findById(parent.author)
-      return author
-    },
-    genreClassification: async (parent) => {
-      const genre = await Genre.findById(parent.genres)
-      return genre
+      return filteredGenres
     },
   },
-
-
-*/
-
-/*
- Subscription: {
+  Subscription: {
     bookAdded: {
       subscribe: () => pubsub.asyncIterator('BOOK_ADDED'),
     },
   },
-
-*/
-
-/*
- User: {
-    recommendation: async (parent, __, contextValue) => {
-      const currentUser = contextValue.currentUser
-      if (!currentUser) {
-        throw new GraphQLError('User is not authenticated!', {
-          extensions: { code: 'UNAUTHENTICATED', http: { status: 401 } },
-        })
-      } else {
-        const genre = await Genre.find({}).populate('books', {
-          id: 1,
-          title: 1,
-          published: 1,
-          author: 1,
-          genres: 1,
-          user: 1,
-        })
-        const favorite = map(parent.favoriteGenre, 'id')
-        const booksByGenreRecommendation = filter(genre, (val) =>
-          includes(favorite, val.id)
-        )
-        return booksByGenreRecommendation
-      }
-    },
-  },
-
-*/
+}

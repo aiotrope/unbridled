@@ -53,8 +53,8 @@ export const typeDefs = `#graphql
         title: String!
         id: ID!
         published: Int
-        author: Author!
-        genres: [Genre!]!
+        author: Author
+        genres: [Genre]!
         user: User
     }
 
@@ -88,6 +88,10 @@ export const typeDefs = `#graphql
             id: ID!
             bornInput: BornInput!
         ): Author
+    }
+
+    type Subscription {
+        bookAdded: Book
     }
    
 `

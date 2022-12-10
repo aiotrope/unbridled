@@ -12,13 +12,12 @@ import { Recommend } from './components/Recommend'
 import { NotFound } from './components/NotFound'
 import Container from 'react-bootstrap/Container'
 import { ME } from './graphql/queries'
-//import { BOOK_ADDED } from './graphql/subcriptions'
-//import { updateCache } from './utilities/updateCache'
 import './_App.scss'
 
 const App = () => {
   const [successMessage, setSuccessMessage] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
+  const [infoMessage, setInfoMessage] = useState('')
   const [me, setMe] = useState(null)
   const [token, setToken] = useState(null)
   const isComponentMounted = useRef(true)
@@ -48,21 +47,13 @@ const App = () => {
     setAuthUserState()
   }, [currentUser?.data?.me])
 
-  /* useSubscription(BOOK_ADDED, {
-    onData: ({ data, client }) => {
-      const addedBook = data.data.bookAdded
-      setSuccessMessage(`${addedBook.title} added`)
-      updateCache(client.cache, { query: ALL_BOOKS }, addedBook)
-    },
-  }) */
-
   return (
     <Router>
       <header>
         <Menu token={token} setToken={setToken} me={me} setMe={setMe} />
       </header>
       <Container style={{ width: '48%' }}>
-        <Notification error={errorMessage} success={successMessage} />
+        <Notification error={errorMessage} success={successMessage} info={infoMessage}/>
       </Container>
 
       <Container>
@@ -108,6 +99,7 @@ const App = () => {
                 <Books
                   mounted={isComponentMounted}
                   setErrorMessage={setErrorMessage}
+                  setInfoMessage={setInfoMessage}
                 />
               }
             />

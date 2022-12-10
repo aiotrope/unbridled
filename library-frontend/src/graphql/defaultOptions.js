@@ -4,7 +4,7 @@ export const defaultOptions = {
     errorPolicy: 'ignore',
   },
   query: {
-    fetchPolicy: 'network-only',
+    fetchPolicy: 'cache-and-network',
     errorPolicy: 'all',
   },
   mutate: {

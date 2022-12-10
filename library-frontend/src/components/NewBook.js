@@ -21,6 +21,7 @@ const NewBook = ({ mounted, setSuccessMessage, setErrorMessage, me }) => {
 
   const genreQuery = useQuery(ALL_GENRES)
   const authorQuery = useQuery(ALL_AUTHORS)
+
   const genreRef = useRef(null)
   const navigate = useNavigate()
 

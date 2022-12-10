@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { useQuery } from '@apollo/client'
 import { ALL_BOOKS } from '../graphql/queries'
 import { ALL_GENRES } from '../graphql/queries'
+import { BOOK_ADDED } from '../graphql/subcriptions'
 import Table from 'react-bootstrap/Table'
 import Container from 'react-bootstrap/Container'
 import Form from 'react-bootstrap/Form'
@@ -12,14 +13,18 @@ import pkg from 'lodash'
 
 const { cloneDeep, orderBy } = pkg
 
-const Books = ({ mounted, setErrorMessage, genre }) => {
+const Books = ({ mounted, setErrorMessage, setInfoMessage, genre }) => {
   const [books, setBooks] = useState([])
+
   const [genres, setGenres] = useState([])
   const [categorization, setCategorization] = useState('')
   const [category, setCategory] = useState('All Genre')
-  const { loading, error, data, refetch } = useQuery(ALL_BOOKS, {
-    variables: genre,
-  })
+  const { loading, error, data, refetch, subscribeToMore } = useQuery(
+    ALL_BOOKS,
+    {
+      variables: genre,
+    }
+  )
 
   const genreQuery = useQuery(ALL_GENRES)
 
@@ -27,6 +32,7 @@ const Books = ({ mounted, setErrorMessage, genre }) => {
     if (mounted && data?.allBooks) {
       setBooks(cloneDeep(data?.allBooks))
       setGenres(cloneDeep(genreQuery?.data?.allGenres))
+
       if (category === 'All Genre') {
         refetch({ genre: '' })
       }
@@ -50,6 +56,30 @@ const Books = ({ mounted, setErrorMessage, genre }) => {
     }
   }, [error, mounted, setErrorMessage])
 
+  useEffect(() => {
+    subscribeToMore({
+      document: BOOK_ADDED,
+      updateQuery: (prev, { subscriptionData }) => {
+        if (!subscriptionData.data) return prev
+
+        const newBook = subscriptionData.data.bookAdded
+        if (!prev.allBooks.find((books) => books.id === newBook.id)) {
+          setInfoMessage(`New book entitled: ${newBook.title} added`)
+          let timer
+          timer = setTimeout(() => {
+            setInfoMessage('')
+            clearTimeout(timer)
+          }, 9000)
+          return Object.assign({}, prev.allBooks, {
+            allBooks: [...prev.allBooks, newBook],
+          })
+        } else {
+          return prev
+        }
+      },
+    })
+  }, [setInfoMessage, subscribeToMore])
+
   const onClick = (event) => {
     event.persist()
     const target = event.target.value
@@ -63,7 +93,6 @@ const Books = ({ mounted, setErrorMessage, genre }) => {
     return <p>loading...</p>
   }
 
-  ///console.log(data.allBooks)
   return (
     <Container className="wrapper">
       <h2>Books</h2>
